@@ -1,0 +1,22 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/themeColor</item>
+        <item name="colorPrimaryDark">@color/themeColor</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="AppTheme.Reader">
+        <item name="windowNoTitle">true</item>
+        <!-- 状态栏颜色 -->
+        <item name="colorPrimaryDark">@android:color/transparent</item>
+    </style>
+
+    <!-- toolbar标题样式 -->
+    <style name="ToolbarTitle" parent="@style/TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">#FFFFFFFF</item>
+    </style>
+</resources>
