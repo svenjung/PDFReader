@@ -1,16 +1,16 @@
-package com.svenj.tools.pdf;
+package com.svenj.tools.pdf.ui;
 
 import android.app.Application;
-import android.arch.lifecycle.AndroidViewModel;
-import android.arch.lifecycle.Observer;
-import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.svenj.tools.pdf.repositories.AppDatabase;
 import com.svenj.tools.pdf.repositories.Pdf;
 import com.svenj.tools.pdf.repositories.PdfRepository;
 
 import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.Observer;
 
 public class RecentViewModel extends AndroidViewModel {
 

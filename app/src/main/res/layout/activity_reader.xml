@@ -19,7 +19,7 @@
             Toolbar外面包一层Layout，在Activity中动态设置topMargin为statusBarHeight
             避免动态显示状态栏时的同时显示StatusBar和Toolbar时的不协调动画
         -->
-        <android.support.v7.widget.Toolbar
+        <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

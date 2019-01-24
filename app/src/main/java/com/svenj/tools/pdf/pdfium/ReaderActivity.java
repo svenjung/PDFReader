@@ -7,13 +7,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.provider.OpenableColumns;
-import android.support.design.widget.TextInputEditText;
-import android.support.design.widget.TextInputLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -29,6 +23,8 @@ import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
 import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
 import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.shockwave.pdfium.PdfDocument;
 import com.shockwave.pdfium.PdfPasswordException;
 import com.svenj.tools.pdf.R;
@@ -42,6 +38,11 @@ import java.io.File;
 import java.util.Date;
 import java.util.List;
 
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import io.reactivex.CompletableObserver;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleObserver;
@@ -133,26 +134,16 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
             mPdf.setReadTime(new Date());
             Log.e(TAG, "save pdf : " + mPdf.toString());
             final PdfDAO pdfDAO = AppDatabase.getInstance(this).getPdfDAO();
-            Single.create(
-                    new SingleOnSubscribe<Long>() {
-                        @Override
-                        public void subscribe(SingleEmitter<Long> emitter) {
-                            try {
-                                emitter.onSuccess(pdfDAO.insertPdf(mPdf));
-                            } catch (Exception e) {
-                                emitter.onError(new Exception("Insert pdf error", e));
-                            }
-                        }
-                    })
+            pdfDAO.insertPdf(mPdf)
                     .subscribeOn(Schedulers.io())
-                    .subscribe(new SingleObserver<Long>() {
+                    .subscribe(new CompletableObserver() {
                         @Override
                         public void onSubscribe(Disposable d) {
                         }
 
                         @Override
-                        public void onSuccess(Long aLong) {
-                            Log.e(TAG, "insert pdf success, id = " + aLong);
+                        public void onComplete() {
+                            Log.e(TAG, "insert pdf success");
                         }
 
                         @Override

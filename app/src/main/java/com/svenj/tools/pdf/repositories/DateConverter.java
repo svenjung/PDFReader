@@ -1,8 +1,9 @@
 package com.svenj.tools.pdf.repositories;
 
-import android.arch.persistence.room.TypeConverter;
 
 import java.util.Date;
+
+import androidx.room.TypeConverter;
 
 public class DateConverter {
 

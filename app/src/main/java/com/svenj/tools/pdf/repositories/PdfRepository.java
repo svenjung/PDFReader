@@ -1,11 +1,11 @@
 package com.svenj.tools.pdf.repositories;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
 import android.util.Log;
 
 import java.util.List;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -35,7 +35,7 @@ public class PdfRepository {
 
         @Override
         protected void onActive() {
-            disposable = pdfDAO.getAllPdfs()
+            disposable = pdfDAO.getRecentPdf()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Consumer<List<Pdf>>() {

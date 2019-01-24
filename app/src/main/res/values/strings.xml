@@ -1,15 +1,7 @@
 <resources>
     <string name="app_name">极简PDF</string>
     <string name="title_home">主页</string>
-    <string name="title_dashboard">仪表盘</string>
-    <string name="title_notifications">通知</string>
-
-    <!-- document activity -->
-    <string name="dlog_password_title">密码</string>
-    <string name="dlog_password_message">文档已加密</string>
-    <string name="dlog_password_retry">密码错误</string>
-    <string name="text_search_hint">搜索中</string>
-    <string name="toast_search_not_found">找不到搜索</string>
+    <string name="title_document">仪表盘</string>
 
     <string name="dialog_password_message">文档已加密</string>
     <string name="dialog_password_edit_hint">请输入密码</string>
