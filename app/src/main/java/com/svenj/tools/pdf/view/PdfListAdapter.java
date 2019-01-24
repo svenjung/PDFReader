@@ -24,6 +24,7 @@ public class PdfListAdapter extends RecyclerView.Adapter<PdfViewHolder> {
         notifyDataSetChanged();
     }
 
+    @NonNull
     @Override
     public PdfViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         return PdfViewHolder.create(viewGroup.getContext());

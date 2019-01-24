@@ -43,15 +43,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import io.reactivex.CompletableObserver;
-import io.reactivex.Single;
-import io.reactivex.SingleEmitter;
-import io.reactivex.SingleObserver;
-import io.reactivex.SingleOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 // TODO 使用BottomSheetBehavior实现目录预览
@@ -107,14 +101,11 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
             Log.e(TAG, "uri : " + mFileUri.toString());
             mPdfCanSave = TextUtils.equals(mFileUri.getScheme(), "file");
             Disposable disposable = permissions.request(Manifest.permission.READ_EXTERNAL_STORAGE)
-                    .subscribe(new Consumer<Boolean>() {
-                        @Override
-                        public void accept(Boolean aBoolean) throws Exception {
-                            if (aBoolean) {
-                                getPdfInformation(mFileUri);
-                            } else {
-                                showErrorDialog();
-                            }
+                    .subscribe(aBoolean -> {
+                        if (aBoolean) {
+                            getPdfInformation(mFileUri);
+                        } else {
+                            showErrorDialog();
                         }
                     });
             disposables.add(disposable);
@@ -173,27 +164,14 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         Disposable disposable = AppDatabase.getInstance(this)
                 .getPdfDAO()
                 .getPdf(uri.toString())
-                .onErrorReturn(new Function<Throwable, Pdf>() {
-                    @Override
-                    public Pdf apply(Throwable throwable) {
-                        return getPdfFromUri(uri);
-                    }
-                })
+                .onErrorReturn(throwable -> getPdfFromUri(uri))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<Pdf>() {
-                    @Override
-                    public void accept(Pdf pdf) {
-                        Log.e(TAG, "get pdf info : " + pdf.toString());
-                        mPdf = pdf;
-                        setupPdfView();
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        Log.e(TAG, "get pdf info error", throwable);
-                    }
-                });
+                .subscribe(pdf -> {
+                    Log.e(TAG, "get pdf info : " + pdf.toString());
+                    mPdf = pdf;
+                    setupPdfView();
+                }, throwable -> Log.e(TAG, "get pdf info error", throwable));
         disposables.add(disposable);
     }
 
@@ -217,12 +195,7 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
     }
 
     private void setupPdfView() {
-        mPdfView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleToolbar();
-            }
-        });
+        mPdfView.setOnClickListener(v -> toggleToolbar());
 
         loadDocument(Uri.parse(mPdf.getFilePath()), mPdf.getReadPage(), null);
     }
@@ -369,12 +342,9 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
                 .setTitle(R.string.dialog_password_message)
                 .setNegativeButton(R.string.dialog_password_button_cancel, null)
                 .setPositiveButton(R.string.dialog_password_button_ok, null)
-                .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        if (!mDocumentOpened) {
-                            ReaderActivity.this.finish();
-                        }
+                .setOnCancelListener(dialog -> {
+                    if (!mDocumentOpened) {
+                        ReaderActivity.this.finish();
                     }
                 })
                 .create();
@@ -400,30 +370,21 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         });
         mPasswordDialog.setView(mPasswordLayout);
         mPasswordDialog.setCanceledOnTouchOutside(false);
-        mPasswordDialog.setOnShowListener(new DialogInterface.OnShowListener() {
-            @Override
-            public void onShow(DialogInterface dialog) {
-                mPasswordDialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(Color.GRAY);
-                mPasswordDialog.getButton(DialogInterface.BUTTON_NEGATIVE)
-                        .setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                mPasswordDialog.dismiss();
-                                if (!mDocumentOpened) {
-                                    ReaderActivity.this.finish();
-                                }
-                            }
-                        });
+        mPasswordDialog.setOnShowListener(onShowListener -> {
+            mPasswordDialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(Color.GRAY);
+            mPasswordDialog.getButton(DialogInterface.BUTTON_NEGATIVE)
+                    .setOnClickListener(v -> {
+                        mPasswordDialog.dismiss();
+                        if (!mDocumentOpened) {
+                            ReaderActivity.this.finish();
+                        }
+                    });
 
-                mPasswordDialog.getButton(DialogInterface.BUTTON_POSITIVE)
-                        .setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                String password = mPasswordEdit.getEditableText().toString();
-                                loadDocument(mFileUri, 0, password);
-                            }
-                        });
-            }
+            mPasswordDialog.getButton(DialogInterface.BUTTON_POSITIVE)
+                    .setOnClickListener(v -> {
+                        String password = mPasswordEdit.getEditableText().toString();
+                        loadDocument(mFileUri, 0, password);
+                    });
         });
         mPasswordDialog.show();
     }
@@ -440,19 +401,9 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
     private void showErrorDialog() {
         AlertDialog errDialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.dialog_error_title)
-                .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        ReaderActivity.this.finish();
-                    }
-                })
+                .setOnCancelListener(dialog -> ReaderActivity.this.finish())
                 .setPositiveButton(R.string.dialog_error_button_ok,
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                ReaderActivity.this.finish();
-                            }
-                        })
+                        (dialog, which) -> ReaderActivity.this.finish())
                 .create();
         errDialog.setCanceledOnTouchOutside(false);
         errDialog.show();

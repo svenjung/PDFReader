@@ -61,40 +61,26 @@ public class Permission {
 
     private String combineName(List<Permission> permissions) {
         return Observable.fromIterable(permissions)
-                .map(new Function<Permission, String>() {
-                    @Override
-                    public String apply(Permission permission) throws Exception {
-                        return permission.name;
+                .map(permission -> permission.name)
+                .collectInto(new StringBuilder(), (s, s2) -> {
+                    if (s.length() == 0) {
+                        s.append(s2);
+                    } else {
+                        s.append(", ").append(s2);
                     }
-                }).collectInto(new StringBuilder(), new BiConsumer<StringBuilder, String>() {
-                    @Override
-                    public void accept(StringBuilder s, String s2) throws Exception {
-                        if (s.length() == 0) {
-                            s.append(s2);
-                        } else {
-                            s.append(", ").append(s2);
-                        }
-                    }
-                }).blockingGet().toString();
+                })
+                .blockingGet().toString();
     }
 
     private Boolean combineGranted(List<Permission> permissions) {
         return Observable.fromIterable(permissions)
-                .all(new Predicate<Permission>() {
-                    @Override
-                    public boolean test(Permission permission) throws Exception {
-                        return permission.granted;
-                    }
-                }).blockingGet();
+                .all(permission -> permission.granted)
+                .blockingGet();
     }
 
     private Boolean combineShouldShowRequestPermissionRationale(List<Permission> permissions) {
         return Observable.fromIterable(permissions)
-                .any(new Predicate<Permission>() {
-                    @Override
-                    public boolean test(Permission permission) throws Exception {
-                        return permission.shouldShowRequestPermissionRationale;
-                    }
-                }).blockingGet();
+                .any(permission -> permission.shouldShowRequestPermissionRationale)
+                .blockingGet();
     }
 }

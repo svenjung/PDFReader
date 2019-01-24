@@ -8,7 +8,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public class PdfRepository {
@@ -38,17 +37,8 @@ public class PdfRepository {
             disposable = pdfDAO.getRecentPdf()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Consumer<List<Pdf>>() {
-                        @Override
-                        public void accept(List<Pdf> pdfBeans) {
-                            setValue(pdfBeans);
-                        }
-                    }, new Consumer<Throwable>() {
-                        @Override
-                        public void accept(Throwable throwable) {
-                            Log.e("PdfRepository", "Query pdf items failed", throwable);
-                        }
-                    });
+                    .subscribe(this::setValue
+                            , throwable -> Log.e("PdfRepository", "Query pdf items failed", throwable));
         }
 
         @Override

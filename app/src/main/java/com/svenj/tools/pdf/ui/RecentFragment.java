@@ -39,16 +39,13 @@ public class RecentFragment extends Fragment {
     };
 
     private OnItemClickListener itemClickListener =
-            new OnItemClickListener() {
-                @Override
-                public void onItemClick(Pdf pdf) {
-                    Intent intent = new Intent(getActivity(), ReaderActivity.class);
-                    // API>=21: intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT); /* launch as a new document */
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET); /* launch as a new document */
-                    intent.setAction(Intent.ACTION_VIEW);
-                    intent.setData(Uri.parse(pdf.getFilePath()));
-                    startActivity(intent);
-                }
+            pdf -> {
+                Intent intent = new Intent(getActivity(), ReaderActivity.class);
+                // API>=21: intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT); /* launch as a new document */
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET); /* launch as a new document */
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(pdf.getFilePath()));
+                startActivity(intent);
             };
 
     public static RecentFragment newInstance() {

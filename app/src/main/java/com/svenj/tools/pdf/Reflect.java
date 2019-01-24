@@ -34,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * @author Lukas Eder
  */
+@SuppressWarnings("JavaReflectionMemberAccess")
 public class Reflect {
     //缓存ClassName对应的Class
     private static ConcurrentHashMap<String, Class> classCache = new ConcurrentHashMap<>();
@@ -635,35 +636,31 @@ public class Reflect {
     @SuppressWarnings("unchecked")
     public <P> P as(Class<P> proxyType) {
         final boolean isMap = (object instanceof Map);
-        final InvocationHandler handler = new InvocationHandler() {
-            @SuppressWarnings("null")
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                String name = method.getName();
+        final InvocationHandler handler = (proxy, method, args) -> {
+            String name = method.getName();
 
-                // Actual method name matches always come first
-                try {
-                    return on(object).call(name, args).get();
-                }
+            // Actual method name matches always come first
+            try {
+                return on(object).call(name, args).get();
+            }
 
-                // [#14] Emulate POJO behaviour on wrapped map objects
-                catch (ReflectException e) {
-                    if (isMap) {
-                        Map<String, Object> map = (Map<String, Object>) object;
-                        int length = (args == null ? 0 : args.length);
+            // [#14] Emulate POJO behaviour on wrapped map objects
+            catch (ReflectException e) {
+                if (isMap) {
+                    Map<String, Object> map = (Map<String, Object>) object;
+                    int length = (args == null ? 0 : args.length);
 
-                        if (length == 0 && name.startsWith("get")) {
-                            return map.get(property(name.substring(3)));
-                        } else if (length == 0 && name.startsWith("is")) {
-                            return map.get(property(name.substring(2)));
-                        } else if (length == 1 && name.startsWith("set")) {
-                            map.put(property(name.substring(3)), args[0]);
-                            return null;
-                        }
+                    if (length == 0 && name.startsWith("get")) {
+                        return map.get(property(name.substring(3)));
+                    } else if (length == 0 && name.startsWith("is")) {
+                        return map.get(property(name.substring(2)));
+                    } else if (length == 1 && name.startsWith("set")) {
+                        map.put(property(name.substring(3)), args[0]);
+                        return null;
                     }
-
-                    throw e;
                 }
+
+                throw e;
             }
         };
 
