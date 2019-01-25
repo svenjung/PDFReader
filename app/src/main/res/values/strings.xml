@@ -1,7 +1,10 @@
 <resources>
     <string name="app_name">极简PDF</string>
-    <string name="title_home">主页</string>
-    <string name="title_document">仪表盘</string>
+
+    <string name="title_home">最近打开</string>
+    <string name="title_document">所有文档</string>
+    <string name="nav_home">主页</string>
+    <string name="nav_document">文档</string>
 
     <string name="dialog_password_message">文档已加密</string>
     <string name="dialog_password_edit_hint">请输入密码</string>
@@ -11,4 +14,13 @@
 
     <string name="dialog_error_title">文档加载失败</string>
     <string name="dialog_error_button_ok">确定</string>
+
+    <string name="document_title">标题</string>
+    <string name="document_author">作者</string>
+    <string name="document_subject">主题</string>
+    <string name="document_keywords">关键字</string>
+    <string name="document_creator">创建者</string>
+    <string name="document_producer">制作者</string>
+    <string name="document_creation_date">创建时间</string>
+    <string name="document_mod_date">修改时间</string>
 </resources>

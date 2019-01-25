@@ -67,6 +67,9 @@ public class RecentFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        if (getActivity() != null) {
+            getActivity().setTitle(R.string.title_home);
+        }
         // Use the ViewModel
         mViewModel.addObserver(observer);
     }
@@ -89,4 +92,13 @@ public class RecentFragment extends Fragment {
         mRecyclerView.setAdapter(mAdapter);
     }
 
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden) {
+            if (getActivity() != null) {
+                getActivity().setTitle(R.string.title_home);
+            }
+        }
+    }
 }

@@ -12,10 +12,12 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import com.github.barteksc.pdfviewer.PDFView;
 import com.github.barteksc.pdfviewer.listener.OnErrorListener;
@@ -38,7 +40,6 @@ import java.io.File;
 import java.util.Date;
 import java.util.List;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -53,14 +54,13 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         OnLoadCompleteListener, OnPageErrorListener, OnPageScrollListener, OnErrorListener {
     private static final String TAG = "PdfReaderActivity";
 
-    private ActionBar mActionBar;
     private PDFView mPdfView;
+    private TextView mPageNumberView;
     private int pageNumber = 0;
 
     private Pdf mPdf;
     private Uri mFileUri;
 
-    private boolean mToolbarVisible = true;
     private AlertDialog mPasswordDialog = null;
     private boolean mDocumentOpened = false;
 
@@ -73,27 +73,117 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
     RxPermissions permissions;
     private CompositeDisposable disposables = new CompositeDisposable();
 
+    private ToolbarAnimator mAnimator;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reader);
+        // layout 透到状态栏
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 
         permissions = new RxPermissions(this);
+        initView();
+        // load document
+        tryLoadDocument();
+    }
 
-        final Toolbar toolbar = findViewById(R.id.toolBar);
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.reader, menu);
+        return true;
+    }
+
+    @Override
+    protected void onStop() {
+        // save read record
+        savePdf();
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        mAnimator.cancel();
+        if (disposables != null) {
+            disposables.dispose();
+            disposables = null;
+        }
+        dismissPasswordDialog();
+        mPdfView.recycle();
+        super.onDestroy();
+    }
+
+    @Override
+    public void loadComplete(int nbPages) {
+        PdfDocument.Meta meta = mPdfView.getDocumentMeta();
+        Log.e(TAG, "title = " + meta.getTitle());
+        Log.e(TAG, "author = " + meta.getAuthor());
+        Log.e(TAG, "subject = " + meta.getSubject());
+        Log.e(TAG, "keywords = " + meta.getKeywords());
+        Log.e(TAG, "creator = " + meta.getCreator());
+        Log.e(TAG, "producer = " + meta.getProducer());
+        Log.e(TAG, "creationDate = " + meta.getCreationDate());
+        Log.e(TAG, "modDate = " + meta.getModDate());
+
+        // printBookmarksTree(mPdfView.getTableOfContents(), "-");
+
+        mPdfView.getTableOfContents();
+        mDocumentOpened = true;
+        mPageNumberView.setVisibility(View.VISIBLE);
+
+        dismissPasswordDialog();
+    }
+
+    @Override
+    public void onError(Throwable t) {
+        Log.e(TAG, "load document failed", t);
+        mDocumentOpened = false;
+        if (t instanceof PdfPasswordException) {
+            // 文件加密，需要输入密码
+            showPasswordDialog();
+        } else {
+            // 文件加载失败
+            showErrorDialog();
+        }
+    }
+
+    @Override
+    public void onPageChanged(int page, int pageCount) {
+        pageNumber = page;
+
+        mPageNumberView.setText(page + " / " + pageCount);
+    }
+
+    @Override
+    public void onPageError(int page, Throwable t) {
+        Log.e(TAG, "Cannot load page " + page, t);
+    }
+
+    @Override
+    public void onPageScrolled(int page, float positionOffset) {
+    }
+
+    private void initView() {
+        Toolbar toolbar = findViewById(R.id.toolBar);
         FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) toolbar.getLayoutParams();
         lp.topMargin = SystemBarUtils.getStatusBarHeight(this);
         toolbar.setLayoutParams(lp);
 
+        View topBar = findViewById(R.id.topBar);
+        View bottomBar = findViewById(R.id.bottomBar);
+        mPageNumberView = findViewById(R.id.pageNumber);
+
+        mAnimator = new ToolbarAnimator(topBar, bottomBar, mPageNumberView);
+
         setSupportActionBar(toolbar);
-        mActionBar = getSupportActionBar();
-        if (mActionBar != null) {
-            mActionBar.setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
         mPdfView = findViewById(R.id.pdfView);
-        mPdfView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+    }
 
+    private void tryLoadDocument() {
         Intent intent = getIntent();
         mFileUri = intent.getData();
 
@@ -113,49 +203,6 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
             showErrorDialog();
         }
     }
-
-    @Override
-    protected void onStop() {
-        // save read record
-        if (mDocumentOpened && mPdfCanSave) {
-            if (mPdf.getId() == 0) {
-                setPdfModifiedTimeAndSize();
-            }
-            mPdf.setReadPage(pageNumber);
-            mPdf.setReadTime(new Date());
-            Log.e(TAG, "save pdf : " + mPdf.toString());
-            final PdfDAO pdfDAO = AppDatabase.getInstance(this).getPdfDAO();
-            pdfDAO.insertPdf(mPdf)
-                    .subscribeOn(Schedulers.io())
-                    .subscribe(new CompletableObserver() {
-                        @Override
-                        public void onSubscribe(Disposable d) {
-                        }
-
-                        @Override
-                        public void onComplete() {
-                            Log.e(TAG, "insert pdf success");
-                        }
-
-                        @Override
-                        public void onError(Throwable e) {
-                            Log.e(TAG, "insert pdf failed", e);
-                        }
-                    });
-        }
-        super.onStop();
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (disposables != null) {
-            disposables.dispose();
-            disposables = null;
-        }
-        dismissPasswordDialog();
-        super.onDestroy();
-    }
-
     /**
      * 首先尝试从本地数据库中获取指定Uri的Pdf记录，如果没有记录则构造一个新的Pdf对象
      * fixme 这里假设查询语句没有问题
@@ -195,40 +242,9 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
     }
 
     private void setupPdfView() {
-        mPdfView.setOnClickListener(v -> toggleToolbar());
+        mPdfView.setOnClickListener(v -> mAnimator.toggleToolbar());
 
         loadDocument(Uri.parse(mPdf.getFilePath()), mPdf.getReadPage(), null);
-    }
-
-    private void toggleToolbar() {
-        if (mToolbarVisible) {
-            hideToolbar();
-        } else {
-            showSystemBars();
-        }
-    }
-
-    private void hideToolbar() {
-        mPdfView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                // 不隐藏导航栏
-                /*| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION*/);
-        if (mActionBar != null) {
-            mActionBar.hide();
-        }
-        mToolbarVisible = false;
-    }
-
-    private void showSystemBars() {
-        mPdfView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-        if (mActionBar != null) {
-            mActionBar.show();
-        }
-        mToolbarVisible = true;
     }
 
     private void loadDocument(Uri uri, int startPage, String password) {
@@ -236,59 +252,46 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
                 .password(password)
                 .enableAnnotationRendering(true)
                 .defaultPage(startPage)
-                .enableAntialiasing(true)
+                .enableAntialiasing(false)
                 .onPageChange(this)
                 .swipeHorizontal(false)
                 .onLoad(this)
                 .onError(this)
                 .enableDoubletap(false)
-                .spacing(10) // in dp
+                .spacing(2) // in dp
                 .onPageError(this)
                 .onPageScroll(this)
                 .nightMode(false)
                 .load();
     }
 
-    @Override
-    public void loadComplete(int nbPages) {
-        PdfDocument.Meta meta = mPdfView.getDocumentMeta();
-        Log.e(TAG, "title = " + meta.getTitle());
-        Log.e(TAG, "author = " + meta.getAuthor());
-        Log.e(TAG, "subject = " + meta.getSubject());
-        Log.e(TAG, "keywords = " + meta.getKeywords());
-        Log.e(TAG, "creator = " + meta.getCreator());
-        Log.e(TAG, "producer = " + meta.getProducer());
-        Log.e(TAG, "creationDate = " + meta.getCreationDate());
-        Log.e(TAG, "modDate = " + meta.getModDate());
+    private void savePdf() {
+        if (mDocumentOpened && mPdfCanSave) {
+            if (mPdf.getId() == 0) {
+                setPdfModifiedTimeAndSize();
+            }
+            mPdf.setReadPage(pageNumber);
+            mPdf.setReadTime(new Date());
+            Log.e(TAG, "save pdf : " + mPdf.toString());
+            final PdfDAO pdfDAO = AppDatabase.getInstance(this).getPdfDAO();
+            pdfDAO.insertPdf(mPdf)
+                    .subscribeOn(Schedulers.io())
+                    .subscribe(new CompletableObserver() {
+                        @Override
+                        public void onSubscribe(Disposable d) {
+                        }
 
-        // printBookmarksTree(mPdfView.getTableOfContents(), "-");
+                        @Override
+                        public void onComplete() {
+                            Log.e(TAG, "insert pdf success");
+                        }
 
-        mPdfView.getTableOfContents();
-        mDocumentOpened = true;
-        dismissPasswordDialog();
-    }
-
-    @Override
-    public void onError(Throwable t) {
-        Log.e(TAG, "load document failed", t);
-        mDocumentOpened = false;
-        if (t instanceof PdfPasswordException) {
-            // 文件加密，需要输入密码
-            showPasswordDialog();
-        } else {
-            // 文件加载失败
-            showErrorDialog();
+                        @Override
+                        public void onError(Throwable e) {
+                            Log.e(TAG, "insert pdf failed", e);
+                        }
+                    });
         }
-    }
-
-    @Override
-    public void onPageChanged(int page, int pageCount) {
-        pageNumber = page;
-    }
-
-    @Override
-    public void onPageError(int page, Throwable t) {
-        Log.e(TAG, "Cannot load page " + page, t);
     }
 
     public void printBookmarksTree(List<PdfDocument.Bookmark> tree, String sep) {
@@ -325,10 +328,7 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         return result;
     }
 
-    @Override
-    public void onPageScrolled(int page, float positionOffset) {
-    }
-
+    // ------------- 密码输入对话框 --------------
     private TextInputEditText mPasswordEdit;
     private TextInputLayout mPasswordLayout;
 
@@ -398,6 +398,7 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         }
     }
 
+    // ------------ 错误提示对话框 -------------
     private void showErrorDialog() {
         AlertDialog errDialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.dialog_error_title)

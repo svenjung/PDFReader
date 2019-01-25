@@ -8,12 +8,14 @@
     <com.github.barteksc.pdfviewer.PDFView
         android:id="@+id/pdfView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:background="@color/readerBackground" />
 
     <FrameLayout
+        android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/readerToolbarColor">
+        android:background="@drawable/reader_top_bar_background">
 
         <!--
             Toolbar外面包一层Layout，在Activity中动态设置topMargin为statusBarHeight
@@ -23,10 +25,30 @@
             android:id="@+id/toolBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/transparent"
+            android:background="@null"
             app:contentInsetStartWithNavigation="0dp"
-            app:navigationIcon="@drawable/ic_white_back"
             app:titleTextAppearance="@style/ToolbarTitle" />
     </FrameLayout>
 
+    <TextView
+        android:id="@+id/pageNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="60dp"
+        android:background="@color/readerBackground"
+        android:gravity="center"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/reader_bottom_bar_background" />
 </FrameLayout>
