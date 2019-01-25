@@ -131,14 +131,14 @@ public class ToolbarAnimator {
                         | View.SYSTEM_UI_FLAG_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         | View.SYSTEM_UI_FLAG_IMMERSIVE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        /*| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION*/
                 // 不隐藏导航栏
                 /*| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION*/);
     }
 
     private void showStatusBar() {
         toolbar.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+                /*| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION*/);
     }
 
     public void cancel() {

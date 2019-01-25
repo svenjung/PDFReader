@@ -109,7 +109,8 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
             disposables = null;
         }
         dismissPasswordDialog();
-        mPdfView.recycle();
+        // onDetachedFromWindow called this method
+        // mPdfView.recycle();
         super.onDestroy();
     }
 
@@ -129,6 +130,7 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
 
         mPdfView.getTableOfContents();
         mDocumentOpened = true;
+        setTitle(mPdf.getFileName());
         mPageNumberView.setVisibility(View.VISIBLE);
 
         dismissPasswordDialog();
@@ -151,7 +153,7 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
     public void onPageChanged(int page, int pageCount) {
         pageNumber = page;
 
-        mPageNumberView.setText(page + " / " + pageCount);
+        mPageNumberView.setText((page + 1) + " / " + pageCount);
     }
 
     @Override
@@ -181,6 +183,10 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         }
 
         mPdfView = findViewById(R.id.pdfView);
+        mPdfView.useBestQuality(true);
+
+        // 底栏拦截点击事件，避免穿透到PdfView
+        bottomBar.setOnClickListener(v -> {});
     }
 
     private void tryLoadDocument() {
@@ -252,13 +258,13 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
                 .password(password)
                 .enableAnnotationRendering(true)
                 .defaultPage(startPage)
-                .enableAntialiasing(false)
+                .enableAntialiasing(true)
                 .onPageChange(this)
                 .swipeHorizontal(false)
                 .onLoad(this)
                 .onError(this)
                 .enableDoubletap(false)
-                .spacing(2) // in dp
+                .spacing(1) // in dp
                 .onPageError(this)
                 .onPageScroll(this)
                 .nightMode(false)
