@@ -3,6 +3,7 @@ package com.svenj.tools.pdf.pdfium;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
@@ -131,6 +132,7 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         mPdfView.getTableOfContents();
         mDocumentOpened = true;
         setTitle(mPdf.getFileName());
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         mPageNumberView.setVisibility(View.VISIBLE);
 
         dismissPasswordDialog();
