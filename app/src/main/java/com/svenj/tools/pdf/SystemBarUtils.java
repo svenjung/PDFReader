@@ -3,6 +3,8 @@ package com.svenj.tools.pdf;
 import android.content.Context;
 import android.content.res.Resources;
 
+import static com.svenj.tools.pdf.Utils.dpToPx;
+
 public class SystemBarUtils {
 
     private static Integer statusBarHeight = null;
@@ -22,8 +24,4 @@ public class SystemBarUtils {
         return statusBarHeight;
     }
 
-    public static int dpToPx(Context context, float dp) {
-        float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (scale * dp + 0.5f);
-    }
 }

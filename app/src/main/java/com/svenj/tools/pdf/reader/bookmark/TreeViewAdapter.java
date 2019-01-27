@@ -1,5 +1,6 @@
 package com.svenj.tools.pdf.reader.bookmark;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +15,9 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
+import static com.svenj.tools.pdf.Utils.dpToPx;
+
+@SuppressWarnings({"unchecked", "unused"})
 public class TreeViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final String KEY_IS_EXPAND = "IS_EXPAND";
     private final List<? extends TreeViewBinder> viewBinders;
@@ -21,16 +25,20 @@ public class TreeViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private int padding = 30;
     private OnTreeNodeListener onTreeNodeListener;
     private boolean toCollapseChild;
+    private int mContentPaddingStart = 0;
+    private int mContentPaddingEnd = 0;
 
-    public TreeViewAdapter(List<? extends TreeViewBinder> viewBinders) {
-        this(null, viewBinders);
+    public TreeViewAdapter(Context context, List<? extends TreeViewBinder> viewBinders) {
+        this(context,null, viewBinders);
     }
 
-    public TreeViewAdapter(List<TreeNode> nodes, List<? extends TreeViewBinder> viewBinders) {
+    public TreeViewAdapter(Context context, List<TreeNode> nodes, List<? extends TreeViewBinder> viewBinders) {
         displayNodes = new ArrayList<>();
         if (nodes != null)
             findDisplayNodes(nodes);
         this.viewBinders = viewBinders;
+        mContentPaddingStart = dpToPx(context, 8);
+        mContentPaddingEnd = dpToPx(context, 8);
     }
 
     /**
@@ -51,8 +59,9 @@ public class TreeViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return displayNodes.get(position).getContent().getLayoutId();
     }
 
+    @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(viewType, parent, false);
         if (viewBinders.size() == 1)
@@ -65,8 +74,9 @@ public class TreeViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position, List<Object> payloads) {
-        if (payloads != null && !payloads.isEmpty()) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position,
+                                 @NonNull List<Object> payloads) {
+        if (!payloads.isEmpty()) {
             Bundle b = (Bundle) payloads.get(0);
             for (String key : b.keySet()) {
                 switch (key) {
@@ -82,37 +92,35 @@ public class TreeViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, int position) {
-        holder.itemView.setPadding(displayNodes.get(position).getHeight() * padding, 3, 3, 3);
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TreeNode selectedNode = displayNodes.get(holder.getLayoutPosition());
-                // Prevent multi-click during the short interval.
-                try {
-                    long lastClickTime = (long) holder.itemView.getTag();
-                    if (System.currentTimeMillis() - lastClickTime < 500)
-                        return;
-                } catch (Exception e) {
-                    holder.itemView.setTag(System.currentTimeMillis());
-                }
+        holder.itemView.setPadding(displayNodes.get(position).getHeight() * padding + mContentPaddingStart,
+                0, mContentPaddingEnd, 0);
+        holder.itemView.setOnClickListener(v -> {
+            TreeNode selectedNode = displayNodes.get(holder.getLayoutPosition());
+            // Prevent multi-click during the short interval.
+            try {
+                long lastClickTime = (long) holder.itemView.getTag();
+                if (System.currentTimeMillis() - lastClickTime < 500)
+                    return;
+            } catch (Exception e) {
                 holder.itemView.setTag(System.currentTimeMillis());
+            }
+            holder.itemView.setTag(System.currentTimeMillis());
 
-                if (onTreeNodeListener != null && onTreeNodeListener.onClick(selectedNode, holder))
-                    return;
-                if (selectedNode.isLeaf())
-                    return;
-                // This TreeNode was locked to click.
-                if (selectedNode.isLocked()) return;
-                boolean isExpand = selectedNode.isExpand();
-                if (onTreeNodeListener != null) {
-                    onTreeNodeListener.onToggle(isExpand, holder);
-                }
-                int positionStart = displayNodes.indexOf(selectedNode) + 1;
-                if (!isExpand) {
-                    notifyItemRangeInserted(positionStart, addChildNodes(selectedNode, positionStart));
-                } else {
-                    notifyItemRangeRemoved(positionStart, removeChildNodes(selectedNode, true));
-                }
+            if (onTreeNodeListener != null && onTreeNodeListener.onClick(selectedNode, holder))
+                return;
+            if (selectedNode.isLeaf())
+                return;
+            // This TreeNode was locked to click.
+            if (selectedNode.isLocked()) return;
+            boolean isExpand = selectedNode.isExpand();
+            if (onTreeNodeListener != null) {
+                onTreeNodeListener.onToggle(isExpand, holder);
+            }
+            int positionStart = displayNodes.indexOf(selectedNode) + 1;
+            if (!isExpand) {
+                notifyItemRangeInserted(positionStart, addChildNodes(selectedNode, positionStart));
+            } else {
+                notifyItemRangeRemoved(positionStart, removeChildNodes(selectedNode, true));
             }
         });
         for (TreeViewBinder viewBinder : viewBinders) {

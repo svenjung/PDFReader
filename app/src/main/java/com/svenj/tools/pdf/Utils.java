@@ -1,5 +1,7 @@
 package com.svenj.tools.pdf;
 
+import android.content.Context;
+
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -67,6 +69,11 @@ public class Utils {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static int dpToPx(Context context, float dp) {
+        float scale = context.getResources().getDisplayMetrics().density;
+        return (int) (scale * dp + 0.5f);
     }
 
 }

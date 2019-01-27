@@ -58,7 +58,7 @@ public class BookmarkFragment extends Fragment {
         List<TreeNode> nodes = new ArrayList<>();
         List<PdfDocument.Bookmark> bookmarks = mListener.getBookmarks();
         initTreeNode(bookmarks, nodes);
-        TreeViewAdapter adapter = new TreeViewAdapter(nodes, Arrays.asList(new DirNodeBinder(), new ItemNodeBinder()));
+        TreeViewAdapter adapter = new TreeViewAdapter(getContext(), nodes, Arrays.asList(new DirNodeBinder(), new ItemNodeBinder()));
         adapter.setOnTreeNodeListener(new TreeViewAdapter.OnTreeNodeListener() {
             @Override
             public boolean onClick(TreeNode node, RecyclerView.ViewHolder holder) {
