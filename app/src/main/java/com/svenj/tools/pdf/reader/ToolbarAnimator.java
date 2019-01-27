@@ -1,4 +1,4 @@
-package com.svenj.tools.pdf.pdfium;
+package com.svenj.tools.pdf.reader;
 
 import android.annotation.SuppressLint;
 import android.view.View;

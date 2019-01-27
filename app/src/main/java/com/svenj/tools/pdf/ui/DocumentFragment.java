@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.svenj.tools.pdf.R;
-import com.svenj.tools.pdf.pdfium.ReaderActivity;
+import com.svenj.tools.pdf.reader.ReaderActivity;
 import com.svenj.tools.pdf.repositories.Pdf;
 import com.svenj.tools.pdf.view.OnItemClickListener;
 import com.svenj.tools.pdf.view.PdfListAdapter;

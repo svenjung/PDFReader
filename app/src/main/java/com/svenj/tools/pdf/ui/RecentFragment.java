@@ -3,12 +3,13 @@ package com.svenj.tools.pdf.ui;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.svenj.tools.pdf.R;
-import com.svenj.tools.pdf.pdfium.ReaderActivity;
+import com.svenj.tools.pdf.reader.ReaderActivity;
 import com.svenj.tools.pdf.repositories.Pdf;
 import com.svenj.tools.pdf.view.OnItemClickListener;
 import com.svenj.tools.pdf.view.PdfListAdapter;
@@ -90,6 +91,14 @@ public class RecentFragment extends Fragment {
         mRecyclerView.addItemDecoration(new RecyclerDivider(view.getContext()));
         mAdapter = new PdfListAdapter(itemClickListener);
         mRecyclerView.setAdapter(mAdapter);
+
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                Log.e("PdfReaderActivity", "[Fragment]onScrollStateChanged, newState = " + newState);
+            }
+        });
     }
 
     @Override

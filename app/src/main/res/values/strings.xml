@@ -23,4 +23,6 @@
     <string name="document_producer">制作者</string>
     <string name="document_creation_date">创建时间</string>
     <string name="document_mod_date">修改时间</string>
+
+    <string name="document_content_title">目录</string>
 </resources>

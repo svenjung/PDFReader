@@ -24,7 +24,7 @@
         </activity>
 
         <activity
-            android:name=".pdfium.ReaderActivity"
+            android:name=".reader.ReaderActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:label="@string/app_name"
             android:screenOrientation="portrait"

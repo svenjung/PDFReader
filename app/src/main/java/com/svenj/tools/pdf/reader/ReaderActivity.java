@@ -1,4 +1,4 @@
-package com.svenj.tools.pdf.pdfium;
+package com.svenj.tools.pdf.reader;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -13,6 +13,7 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
 import android.view.Window;
@@ -33,6 +34,7 @@ import com.shockwave.pdfium.PdfPasswordException;
 import com.svenj.tools.pdf.R;
 import com.svenj.tools.pdf.SystemBarUtils;
 import com.svenj.tools.pdf.permissions.RxPermissions;
+import com.svenj.tools.pdf.reader.bookmark.BookmarkFragment;
 import com.svenj.tools.pdf.repositories.AppDatabase;
 import com.svenj.tools.pdf.repositories.Pdf;
 import com.svenj.tools.pdf.repositories.PdfDAO;
@@ -44,6 +46,10 @@ import java.util.List;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import io.reactivex.CompletableObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -52,10 +58,12 @@ import io.reactivex.schedulers.Schedulers;
 
 // TODO 使用BottomSheetBehavior实现目录预览
 public class ReaderActivity extends AppCompatActivity implements OnPageChangeListener,
-        OnLoadCompleteListener, OnPageErrorListener, OnPageScrollListener, OnErrorListener {
+        OnLoadCompleteListener, OnPageErrorListener, OnPageScrollListener, OnErrorListener,
+        BookmarkFragment.BookmarkFactory {
     private static final String TAG = "PdfReaderActivity";
 
     private PDFView mPdfView;
+    private DrawerLayout mDrawerLayout;
     private TextView mPageNumberView;
     private int pageNumber = 0;
 
@@ -116,6 +124,16 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
     }
 
     @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
     public void loadComplete(int nbPages) {
         PdfDocument.Meta meta = mPdfView.getDocumentMeta();
         Log.e(TAG, "title = " + meta.getTitle());
@@ -127,7 +145,7 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         Log.e(TAG, "creationDate = " + meta.getCreationDate());
         Log.e(TAG, "modDate = " + meta.getModDate());
 
-        // printBookmarksTree(mPdfView.getTableOfContents(), "-");
+        //printBookmarksTree(mPdfView.getTableOfContents(), "-");
 
         mPdfView.getTableOfContents();
         mDocumentOpened = true;
@@ -136,6 +154,8 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         mPageNumberView.setVisibility(View.VISIBLE);
 
         dismissPasswordDialog();
+
+        prepareBookmarkFragment();
     }
 
     @Override
@@ -167,6 +187,36 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
     public void onPageScrolled(int page, float positionOffset) {
     }
 
+    // 提供Bookmark列表
+    @Override
+    public List<PdfDocument.Bookmark> getBookmarks() {
+        if (mDocumentOpened) {
+            return mPdfView.getTableOfContents();
+        }
+        return null;
+    }
+
+    // Bookmark点击回调
+    @Override
+    public void onBookmarkClick(int selectedPage) {
+        if (mDocumentOpened) {
+            closeDrawer();
+            mPdfView.jumpTo(selectedPage, false);
+        }
+    }
+
+    private void closeDrawer() {
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawer(GravityCompat.START);
+        }
+    }
+
+    private void openDrawer() {
+        if (!mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.openDrawer(GravityCompat.START);
+        }
+    }
+
     private void initView() {
         Toolbar toolbar = findViewById(R.id.toolBar);
         FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) toolbar.getLayoutParams();
@@ -189,6 +239,10 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
 
         // 底栏拦截点击事件，避免穿透到PdfView
         bottomBar.setOnClickListener(v -> {});
+
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        findViewById(R.id.bookMarks).setOnClickListener(v -> openDrawer());
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
     }
 
     private void tryLoadDocument() {
@@ -196,7 +250,6 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         mFileUri = intent.getData();
 
         if (mFileUri != null) {
-            Log.e(TAG, "uri : " + mFileUri.toString());
             mPdfCanSave = TextUtils.equals(mFileUri.getScheme(), "file");
             Disposable disposable = permissions.request(Manifest.permission.READ_EXTERNAL_STORAGE)
                     .subscribe(aBoolean -> {
@@ -211,6 +264,7 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
             showErrorDialog();
         }
     }
+
     /**
      * 首先尝试从本地数据库中获取指定Uri的Pdf记录，如果没有记录则构造一个新的Pdf对象
      * fixme 这里假设查询语句没有问题
@@ -223,7 +277,6 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(pdf -> {
-                    Log.e(TAG, "get pdf info : " + pdf.toString());
                     mPdf = pdf;
                     setupPdfView();
                 }, throwable -> Log.e(TAG, "get pdf info error", throwable));
@@ -280,7 +333,6 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
             }
             mPdf.setReadPage(pageNumber);
             mPdf.setReadTime(new Date());
-            Log.e(TAG, "save pdf : " + mPdf.toString());
             final PdfDAO pdfDAO = AppDatabase.getInstance(this).getPdfDAO();
             pdfDAO.insertPdf(mPdf)
                     .subscribeOn(Schedulers.io())
@@ -302,13 +354,14 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         }
     }
 
-    public void printBookmarksTree(List<PdfDocument.Bookmark> tree, String sep) {
-        for (PdfDocument.Bookmark b : tree) {
-            Log.e(TAG, String.format("%s %s, p %d", sep, b.getTitle(), b.getPageIdx()));
-            if (b.hasChildren()) {
-                printBookmarksTree(b.getChildren(), sep + "-");
-            }
-        }
+    private void prepareBookmarkFragment() {
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        ft.replace(R.id.navigation_content, new BookmarkFragment());
+        ft.commit();
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(Gravity.LEFT)) drawer.closeDrawer(Gravity.LEFT);
     }
 
     public String getFileName(Uri uri) {
@@ -417,4 +470,5 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         errDialog.setCanceledOnTouchOutside(false);
         errDialog.show();
     }
+
 }
