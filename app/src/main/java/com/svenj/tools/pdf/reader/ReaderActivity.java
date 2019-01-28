@@ -401,6 +401,7 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
                 openDrawer();
                 break;
             case R.id.share:
+                shareDocument();
                 break;
             case R.id.settings:
                 break;
@@ -498,5 +499,18 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
                 .setAdapter(adapter, null)
                 .create();
         docInfo.show();
+    }
+
+    private void shareDocument() {
+        try {
+            Intent share = new Intent(Intent.ACTION_SEND);
+            share.putExtra(Intent.EXTRA_STREAM, Uri.parse(mPdf.getFilePath()));
+            share.setType("application/pdf");//此处可发送多种文件
+            share.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(share, "分享文件"));
+        } catch (Exception e) {
+            Log.e(TAG, "share document error", e);
+        }
     }
 }
