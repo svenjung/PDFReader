@@ -10,7 +10,7 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/node_close"
+        android:src="@drawable/ic_reader_bookmark_dir_close"
         android:visibility="invisible" />
 
     <TextView

@@ -12,11 +12,33 @@
         <item name="windowNoTitle">true</item>
         <!-- 状态栏颜色 -->
         <item name="colorPrimaryDark">@color/white</item>
+
+        <item name="homeAsUpIndicator">@drawable/ic_home_as_up_indicator</item>
+
+        <item name="actionOverflowButtonStyle">@style/OverflowButtonStyle</item>
+        <item name="actionOverflowMenuStyle">@style/OverflowMenuStyle</item>
     </style>
 
     <!-- toolbar标题样式 -->
     <style name="ToolbarTitle" parent="@style/TextAppearance.Widget.AppCompat.Toolbar.Title">
         <item name="android:textSize">18sp</item>
         <item name="android:textColor">@color/black</item>
+    </style>
+
+    <!-- ActionBar溢出菜单按钮样式 -->
+    <style name="OverflowButtonStyle" parent="Widget.AppCompat.Light.ActionButton.Overflow">
+        <item name="android:src">@drawable/ic_actionbar_overflow</item>
+    </style>
+
+    <!-- ActionBar溢出菜单弹出样式 -->
+    <style name="OverflowMenuStyle" parent="Widget.AppCompat.Light.PopupMenu.Overflow">
+        <!-- 是否覆盖ActionBar -->
+        <item name="overlapAnchor">false</item>
+        <!-- 垂直偏移距离 -->
+        <item name="android:dropDownVerticalOffset">10dp</item>
+        <!-- 水平偏移距离，相对于窗口右边 -->
+        <item name="android:dropDownHorizontalOffset">-6dp</item>
+
+        <item name="android:popupBackground">@color/white</item>
     </style>
 </resources>

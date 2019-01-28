@@ -15,6 +15,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -104,6 +105,20 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case android.R.id.home:
+                finish();
+                return true;
+            case R.id.doc_information:
+                showDocInfoDialog();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     protected void onStop() {
         // save read record
         savePdf();
@@ -135,18 +150,6 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
 
     @Override
     public void loadComplete(int nbPages) {
-        PdfDocument.Meta meta = mPdfView.getDocumentMeta();
-        Log.e(TAG, "title = " + meta.getTitle());
-        Log.e(TAG, "author = " + meta.getAuthor());
-        Log.e(TAG, "subject = " + meta.getSubject());
-        Log.e(TAG, "keywords = " + meta.getKeywords());
-        Log.e(TAG, "creator = " + meta.getCreator());
-        Log.e(TAG, "producer = " + meta.getProducer());
-        Log.e(TAG, "creationDate = " + meta.getCreationDate());
-        Log.e(TAG, "modDate = " + meta.getModDate());
-
-        //printBookmarksTree(mPdfView.getTableOfContents(), "-");
-
         mPdfView.getTableOfContents();
         mDocumentOpened = true;
         setTitle(mPdf.getFileName());
@@ -238,10 +241,13 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         mPdfView.useBestQuality(true);
 
         // 底栏拦截点击事件，避免穿透到PdfView
-        bottomBar.setOnClickListener(v -> {});
+        bottomBar.setOnClickListener(v -> {
+        });
 
         mDrawerLayout = findViewById(R.id.drawer_layout);
-        findViewById(R.id.bookMarks).setOnClickListener(v -> openDrawer());
+        findViewById(R.id.bookMarks).setOnClickListener(mBottomBarClickListener);
+        findViewById(R.id.share).setOnClickListener(mBottomBarClickListener);
+        findViewById(R.id.settings).setOnClickListener(mBottomBarClickListener);
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
     }
 
@@ -360,8 +366,7 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         ft.replace(R.id.navigation_content, new BookmarkFragment());
         ft.commit();
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(Gravity.LEFT)) drawer.closeDrawer(Gravity.LEFT);
+        closeDrawer();
     }
 
     public String getFileName(Uri uri) {
@@ -388,6 +393,19 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         }
         return result;
     }
+
+    private View.OnClickListener mBottomBarClickListener = v -> {
+        int id = v.getId();
+        switch (id) {
+            case R.id.bookMarks:
+                openDrawer();
+                break;
+            case R.id.share:
+                break;
+            case R.id.settings:
+                break;
+        }
+    };
 
     // ------------- 密码输入对话框 --------------
     private TextInputEditText mPasswordEdit;
@@ -471,4 +489,14 @@ public class ReaderActivity extends AppCompatActivity implements OnPageChangeLis
         errDialog.show();
     }
 
+    // ------------ 文件信息对话框 -------------
+    private void showDocInfoDialog() {
+        List<DocInfoListAdapter.DocMeta> metas = DocInfoListAdapter
+                .buildMetaList(this, mPdfView.getDocumentMeta(), mPdf.getFileName());
+        DocInfoListAdapter adapter = new DocInfoListAdapter(metas);
+        AlertDialog docInfo = new AlertDialog.Builder(this)
+                .setAdapter(adapter, null)
+                .create();
+        docInfo.show();
+    }
 }

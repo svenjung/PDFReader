@@ -15,6 +15,8 @@
     <string name="dialog_error_title">文档加载失败</string>
     <string name="dialog_error_button_ok">确定</string>
 
+    <string name="document_menu_info">文件信息</string>
+
     <string name="document_title">标题</string>
     <string name="document_author">作者</string>
     <string name="document_subject">主题</string>

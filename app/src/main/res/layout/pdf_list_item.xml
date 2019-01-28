@@ -14,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:src="@drawable/file_pdf" />
+        android:src="@drawable/ic_file_pdf" />
 
     <LinearLayout
         android:layout_width="match_parent"

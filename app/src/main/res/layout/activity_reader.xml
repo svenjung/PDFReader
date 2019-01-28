@@ -16,6 +16,6 @@
         android:id="@+id/navigation_content"
         android:layout_width="280dp"
         android:layout_height="match_parent"
-        android:layout_gravity="left"
+        android:layout_gravity="start"
         android:background="@color/white" />
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -60,7 +60,16 @@
             android:layout_weight="1"
             android:background="@drawable/reader_bottom_item_background"
             android:scaleType="fitCenter"
-            android:src="@drawable/icon_88" />
+            android:src="@drawable/ic_reader_bottombar_bookmark" />
+
+        <ImageView
+            android:id="@+id/share"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/reader_bottom_item_background"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_reader_bottombar_share" />
 
         <ImageView
             android:id="@+id/settings"
@@ -69,7 +78,7 @@
             android:layout_weight="1"
             android:background="@drawable/reader_bottom_item_background"
             android:scaleType="fitCenter"
-            android:src="@drawable/icon_setting" />
+            android:src="@drawable/ic_reader_bottombar_settings" />
     </LinearLayout>
 
 </FrameLayout>

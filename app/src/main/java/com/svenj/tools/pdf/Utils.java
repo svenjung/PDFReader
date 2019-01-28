@@ -12,16 +12,20 @@ public class Utils {
     private static SimpleDateFormat sDateFormat = null;
 
     public static String buildSubtitle(Date time, long size) {
-        if (sDateFormat == null) {
-            sDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        }
-
         StringBuilder sb = new StringBuilder();
-        sb.append(sDateFormat.format(time));
+        sb.append(formatDate(time));
         sb.append(" | ");
         sb.append(getFormatSize(size));
 
         return sb.toString();
+    }
+
+    public static String formatDate(Date time) {
+        if (sDateFormat == null) {
+            sDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        }
+
+        return sDateFormat.format(time);
     }
 
     private static String getFormatSize(double size) {

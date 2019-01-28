@@ -19,7 +19,7 @@ public class DirNodeBinder extends TreeViewBinder<DirNodeBinder.DirViewHolder> {
     @Override
     public void bindView(DirViewHolder holder, int position, TreeNode node) {
         holder.ivArrow.setRotation(0);
-        holder.ivArrow.setImageResource(R.drawable.node_close);
+        holder.ivArrow.setImageResource(R.drawable.ic_reader_bookmark_dir_close);
         int rotateDegree = node.isExpand() ? 90 : 0;
         holder.ivArrow.setRotation(rotateDegree);
         Dir dir = (Dir) node.getContent();
