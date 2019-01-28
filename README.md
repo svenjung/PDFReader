@@ -1,7 +1,7 @@
 # PDFReader
 一款简单的PDF阅读工具，基于pdfium实现
 
-<img width="200" height="400" src="https://github.com/svenjung/PDFReader/blob/master/screenshots/home_recent.png"/>
+<img width="200" height="400" src="https://github.com/svenjung/PDFReader/blob/master/screenshots/home_recent.png"/> <img width="200" height="400" src="https://github.com/svenjung/PDFReader/blob/master/screenshots/reader_main.png"/> <img width="200" height="400" src="https://github.com/svenjung/PDFReader/blob/master/screenshots/bookmark_list.png"/>
 ## 功能
 目前只有阅读功能，并保存阅读记录
 
